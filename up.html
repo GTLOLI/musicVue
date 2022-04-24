@@ -1,0 +1,156 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Html5文件上传-jq22.com</title>
+<!--<script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+    .rbq{
+        margin-top:20px ;
+        width: 50px;
+        height:50px;
+        border-radius: 10px;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<form id="form1" enctype="multipart/form-data" method="post" action="Upload.aspx">
+    <div class="row">
+        <label for="fileToUpload">选择上传的文件</label><br>
+        <input type="file" name="fileToUpload" multiple="multiple" id="fileToUpload" onchange="fileSelected();">
+    </div>
+    <div id="fileName"></div>
+    <div id="fileSize"></div>
+    <div id="fileType"></div>
+    <div class="row">
+        <input type="button" onclick="uploadFile()" value="Upload">
+    </div>
+    <div id="progressNumber"></div>
+    <div class="access">
+         <button type="button" id="gettoken">获取Access Token</button>
+    </div>
+    <div class="rbq">
+        <button type="button" id="getpdf">获取结果</button>
+    </div>
+</form>
+
+<script>
+
+//获取按钮
+let btn = document.getElementById('gettoken');
+btn.addEventListener('click',getaccess);
+
+let getpdf = document.getElementById('getpdf');
+getpdf.addEventListener('click',function (){
+    getData();
+})
+
+//存储文件转为base64的变量
+let fileBase = '';
+
+//文件读取函数
+function fileSelected() {
+    let file = document.getElementById('fileToUpload').files[0];
+    let reader = new FileReader();
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+    reader.addEventListener("load", function () {
+        //替换字符串去掉开头
+      let res  = reader.result;
+     fileBase = res.replace("data:application/pdf;base64,",'')
+     console.log(fileBase);
+    }, false);
+    //如果文件存在就读取文件
+}
+// log_id: 1517548707984943900
+// result:
+//     id: "YJOvqE1MRRlWM2D5Kw34"
+
+//发送文件请求函数
+async function uploadFile() {
+        let data = {
+            "from": "auto",
+            "to": "zh",
+            "domain": "general",
+           "input":{
+               "content":fileBase,
+               "format":"pdf",
+               "filename":"QB.pdf"
+            },
+
+        }
+        //发送请求
+        const res = axios({
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        method: 'post',
+        url: 'https://aip.baidubce.com/rpc/2.0/mt/v2/doc-translation/create?access_token=24.6af8ceb7694648d2f3effb11df2e202e.2592000.1653237717.282335-26037376',
+        data
+    });
+    let result = await res;
+    console.log(result)
+
+
+    // //创建一个FRormdata对象
+    // let data = new FormData();
+    // data.append("key",'f3121dbe7561f716ee69f7ee340227c4');
+    // data.append("source", document.getElementById('fileToUpload').files[0]);
+    // // 发送 POST 请求
+    // const res = axios({
+    //     headers: {
+    //         'Content-Type': 'multipart/form-data'
+    //     },
+    //     method: 'post',
+    //     url: 'http://139.155.39.14:54321/api/1/upload',
+    //     data
+    // });
+    // let result = await res;
+    // console.log(result)
+}
+
+//24.53fbd209a2039312ff041e04a22e65a4.2592000.1653234182.282335-26037376
+//24.273c947253465629154745e61a350765.2592000.1653237401.282335-26037376
+//24.6af8ceb7694648d2f3effb11df2e202e.2592000.1653237717.282335-26037376
+
+//获取权健方法
+async function getaccess(){
+    
+    const res = await axios({
+        method: 'post',
+        url: 'https://aip.baidubce.com/oauth/2.0/token',
+        params:{
+        grant_type:'client_credentials',
+        client_id:'hBzKw6iOsHXtYnqhHO6VWp8Q',
+        client_secret:'fumrdHZPNdEI8q1VaYGm7GDV9sHznUG4'
+        }
+    });
+    console.log(res);
+}
+
+//获取结果方法
+async function getData(){
+    let data = {
+        "id":"YJOvqE1MRRlWM2D5Kw34"
+    }
+    const pdfData =  axios({
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        method: 'post',
+        url: 'https://aip.baidubce.com/rpc/2.0/mt/v2/doc-translation/query?access_token=24.6af8ceb7694648d2f3effb11df2e202e.2592000.1653237717.282335-26037376',
+        data
+    })
+
+    let pdf = await pdfData;
+    console.log(pdf)
+}
+
+</script>
+
+</body>
+</html>
